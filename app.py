@@ -6,6 +6,82 @@ from datetime import datetime
 
 DB_NAME = "property_dealer.db"
 
+st.set_page_config(
+    page_title="Property Dealer App",
+    page_icon="🏠",
+    layout="wide"
+)
+
+st.markdown("""
+<style>
+.stApp {
+    background-color: #0f172a;
+    color: white;
+}
+
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #111827, #1e293b);
+}
+
+.stButton>button {
+    width: 100%;
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    color: white;
+    border-radius: 10px;
+    border: none;
+    padding: 12px;
+    font-weight: bold;
+}
+
+.stButton>button:hover {
+    background: linear-gradient(90deg, #1d4ed8, #6d28d9);
+    color: white;
+}
+
+.stTextInput input,
+.stNumberInput input,
+textarea {
+    border-radius: 10px !important;
+    background-color: #1e293b !important;
+    color: white !important;
+    border: 1px solid #334155 !important;
+}
+
+.stSelectbox div[data-baseweb="select"] {
+    background-color: #1e293b !important;
+    border-radius: 10px !important;
+}
+
+[data-testid="metric-container"] {
+    background: linear-gradient(135deg, #1e293b, #334155);
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.25);
+}
+
+[data-testid="stDataFrame"] {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+h1, h2, h3, label, p {
+    color: #f8fafc !important;
+}
+
+.block-container {
+    padding-top: 2rem;
+}
+
+.card {
+    background: #1e293b;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.30);
+    margin-bottom: 20px;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ---------------- DATABASE ----------------
 
 def get_conn():
@@ -191,13 +267,8 @@ if "user_id" not in st.session_state:
 
 # ---------------- UI ----------------
 
-st.set_page_config(
-    page_title="Property Dealer App",
-    page_icon="🏠",
-    layout="wide"
-)
-
 st.title("🏠 Property Dealer Management App")
+st.caption("Professional property data management system")
 
 # ---------------- LOGIN / SIGNUP ----------------
 
@@ -246,7 +317,9 @@ if not st.session_state.logged_in:
 else:
     user = get_user(st.session_state.user_id)
 
+    st.sidebar.title("🏢 Dealer Panel")
     st.sidebar.success(f"Logged in: {user[1]}")
+
     menu = st.sidebar.radio(
         "Menu",
         [
@@ -265,8 +338,6 @@ else:
         st.session_state.user_id = None
         st.rerun()
 
-    # -------- DASHBOARD --------
-
     if menu == "Dashboard":
         st.subheader("Dashboard")
 
@@ -279,9 +350,12 @@ else:
         col3.metric("Sold", len(df[df["status"] == "Sold"]) if not df.empty else 0)
         col4.metric("Rented", len(df[df["status"] == "Rented"]) if not df.empty else 0)
 
-        st.info("Yahan dealer apni properties, profile aur data manage kar sakta hai.")
-
-    # -------- PROFILE --------
+        st.markdown("""
+        <div class="card">
+            <h3>Welcome to your Property Management Dashboard</h3>
+            <p>Yahan aap apni agency profile, property records, owner contacts, prices aur status manage kar sakte hain.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     elif menu == "Profile":
         st.subheader("Dealer Profile")
@@ -307,8 +381,6 @@ else:
                 )
                 st.success("Profile saved successfully.")
                 st.rerun()
-
-    # -------- ADD PROPERTY --------
 
     elif menu == "Add Property":
         st.subheader("Add New Property")
@@ -349,8 +421,6 @@ else:
                 else:
                     st.warning("Title, location aur owner contact zaroor fill karo.")
 
-    # -------- VIEW / SEARCH --------
-
     elif menu == "View / Search Properties":
         st.subheader("View / Search Properties")
 
@@ -385,8 +455,6 @@ else:
 
             st.dataframe(filtered_df, use_container_width=True)
 
-    # -------- EDIT PROPERTY --------
-
     elif menu == "Edit Property":
         st.subheader("Edit Property")
 
@@ -395,9 +463,7 @@ else:
         if df.empty:
             st.info("Edit karne ke liye koi property nahi hai.")
         else:
-            property_ids = df["id"].tolist()
-            selected_id = st.selectbox("Select Property ID", property_ids)
-
+            selected_id = st.selectbox("Select Property ID", df["id"].tolist())
             selected = df[df["id"] == selected_id].iloc[0]
 
             with st.form("edit_property_form"):
@@ -443,8 +509,6 @@ else:
                     st.success("Property updated successfully.")
                     st.rerun()
 
-    # -------- DELETE PROPERTY --------
-
     elif menu == "Delete Property":
         st.subheader("Delete Property")
 
@@ -454,7 +518,6 @@ else:
             st.info("Delete karne ke liye koi property nahi hai.")
         else:
             selected_id = st.selectbox("Select Property ID", df["id"].tolist())
-
             selected = df[df["id"] == selected_id].iloc[0]
 
             st.warning(f"Are you sure you want to delete: {selected['title']}?")
@@ -463,8 +526,6 @@ else:
                 delete_property(selected_id)
                 st.success("Property deleted successfully.")
                 st.rerun()
-
-    # -------- EXPORT DATA --------
 
     elif menu == "Export Data":
         st.subheader("Export Properties Data")
